@@ -216,6 +216,9 @@ a{color:inherit;}
 .qr-frame:nth-child(2){rotate:1.3deg;margin-top:1.1rem;}
 .qr-box{position:relative;width:128px;height:128px;margin:0 auto .6rem;}
 .qr-box img{width:128px;height:128px;object-fit:contain;position:relative;z-index:2;}
+.qr-link{display:block;width:128px;height:128px;margin:0 auto;}
+.qr-link:hover img{transform:scale(1.06);}
+.qr-link img{transition:transform .18s ease;}
 .qr-placeholder{
   position:absolute;inset:0;z-index:1;
   display:flex;align-items:center;justify-content:center;
@@ -559,7 +562,9 @@ footer{text-align:center;padding:2.6rem 1rem 3.2rem;}
       <div class="qr-grid">
         <figure class="qr-frame reveal">
           <div class="qr-box">
-            <img src="images/wechatpay.png" alt="微信赞赏码" onerror="qrMissing(this)">
+            <a href="images/wechatpay.png" target="_blank" rel="noopener" title="点开大图扫码" class="qr-link">
+              <img src="images/wechatpay.png" alt="微信赞赏码" onerror="qrMissing(this)">
+            </a>
             <div class="qr-placeholder" hidden>
               <span class="ph-mark">?</span>
               <span class="ph-note">把微信赞赏码放到 images/wechatpay.png</span>
@@ -570,7 +575,9 @@ footer{text-align:center;padding:2.6rem 1rem 3.2rem;}
 
         <figure class="qr-frame reveal">
           <div class="qr-box">
-            <img src="images/alipay.png" alt="支付宝赞赏码" onerror="qrMissing(this)">
+            <a href="images/alipay.png" target="_blank" rel="noopener" title="点开大图扫码" class="qr-link">
+              <img src="images/alipay.png" alt="支付宝赞赏码" onerror="qrMissing(this)">
+            </a>
             <div class="qr-placeholder" hidden>
               <span class="ph-mark">?</span>
               <span class="ph-note">把支付宝赞赏码放到 images/alipay.png</span>
@@ -580,7 +587,7 @@ footer{text-align:center;padding:2.6rem 1rem 3.2rem;}
         </figure>
       </div>
 
-      <p class="donate-note reveal">您的支持是手绘的动力 ✏️</p>
+      <p class="donate-note reveal">您的支持是手绘的动力 ✏️ · 点击二维码可看大图扫码</p>
     </div>
   </section>
 
