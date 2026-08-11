@@ -1,5 +1,8 @@
 # 灵岛 (LingIsland) 👻
 
+> 🌐 **在线落地页**（含下载、功能介绍、打赏）：[echoing12.github.io/LingIsLand](https://echoing12.github.io/LingIsLand)
+> 💾 **最新版下载**：[GitHub Releases](https://github.com/echoing12/LingIsLand/releases/latest)
+
 把 MacBook 的刘海变成 iPhone 式灵动岛 + 一只会陪你的小幽灵萌宠。
 
 - 闭岛：黑色胶囊盖住刘海，把小幽灵**包含在胶囊内**（胶囊比刘海稍宽以容纳它）

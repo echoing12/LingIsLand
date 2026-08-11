@@ -124,6 +124,13 @@ a{color:inherit;}
 }
 .btn-download:hover{background:var(--pink-deep);color:#fff;rotate:.5deg;}
 .download-note{font-size:.82rem;color:var(--pencil);rotate:-.5deg;}
+.install-tip{
+  margin:.9rem auto 0;max-width:34rem;
+  font-size:.82rem;line-height:1.6;color:var(--ink-soft);
+  background:#fff;border:2px dashed var(--pencil);border-radius:10px;
+  padding:.55rem .9rem;text-align:center;
+}
+.install-tip strong{color:var(--pink-deep);font-weight:700;}
 
 /* Hero 右侧：放大吉祥物 + 漂浮装饰 */
 .hero-art{display:flex;align-items:center;justify-content:center;position:relative;min-height:280px;}
@@ -453,8 +460,9 @@ footer{text-align:center;padding:2.6rem 1rem 3.2rem;}
         <!-- 🔗 链接替换区：把 href="#" 换成 GitHub Releases 的下载地址 -->
         <div class="hero-cta">
           <a class="btn btn-download" href="https://github.com/echoing12/LingIsLand/releases/latest">✨ 立即下载</a>
-          <span class="download-note">macOS 15.4+ · 免费 · 零第三方依赖</span>
+          <span class="download-note">macOS 15.4+ · Apple Silicon · 免费</span>
         </div>
+        <p class="install-tip">⚠️ 首次打开若提示「无法验证开发者」，请 <strong>按住 Control 点按 app → 打开</strong>，或去 系统设置 → 隐私与安全性 → 「仍要打开」</p>
       </div>
 
       <div class="hero-art reveal">
