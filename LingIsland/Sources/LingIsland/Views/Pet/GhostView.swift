@@ -143,7 +143,8 @@ struct GhostView: View {
         let dy = (mouse.y - screen.frame.midY) / (screen.frame.height / 2)
         let newShift = CGSize(
             width: CGFloat(max(-0.4, min(0.4, dx))) * 2.4,
-            height: CGFloat(max(-0.4, min(0.4, dy))) * 2.4
+            // 屏幕坐标 y 向上、SwiftUI offset y 向下为正，取反让眼睛朝光标方向看
+            height: -CGFloat(max(-0.4, min(0.4, dy))) * 2.4
         )
         if newShift != eyeShift { eyeShift = newShift }
     }

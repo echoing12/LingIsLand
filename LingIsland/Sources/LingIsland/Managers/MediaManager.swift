@@ -3,8 +3,10 @@ import Combine
 import Foundation
 import os
 
-/// 媒体控制管理器：常驻启动 MediaRemoteAdapter（stream 模式）解析"现在播放"信息，
-/// 播放控制走一次性 send/seek 子进程调用，私有 API 全部隔离在适配器内
+/// 媒体控制管理器：常驻启动 /usr/bin/perl + mediaremote.pl（stream 模式）解析"现在播放"信息，
+/// 播放控制走一次性 send/seek 调用，私有 API 全部隔离在 perl + 适配器内。
+/// 必须用 /usr/bin/perl：macOS 15.4+ 起 MediaRemote 只放行 bundle id 以 com.apple. 开头的进程，
+/// 而 /usr/bin/perl 的 bundle id 是 com.apple.perl5。
 private let log = Logger(subsystem: "com.lingisland.app", category: "MediaManager")
 
 @MainActor
@@ -51,15 +53,15 @@ final class MediaManager: ObservableObject {
     func start() {
         guard streamProcess == nil else { return }
         isStopping = false
-        guard let adapterURL = Self.locateAdapter(),
-              let frameworkURL = Self.locateFramework() else {
-            log.warning("找不到 MediaRemoteAdapter 或 MediaRemoteAdapter.framework")
+        guard let scriptURL = Self.locateScript(),
+              let frameworkDir = Self.locateFrameworkDir() else {
+            log.warning("找不到 mediaremote.pl 或 MediaRemoteAdapter.framework")
             return
         }
 
         let process = Process()
-        process.executableURL = adapterURL
-        process.arguments = [frameworkURL.path, "stream"]
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+        process.arguments = [scriptURL.path, frameworkDir.path, "stream"]
         let pipe = Pipe()
         process.standardOutput = pipe
         process.standardInput = Pipe()
@@ -228,11 +230,11 @@ final class MediaManager: ObservableObject {
     }
 
     private func runAdapter(_ extra: [String]) {
-        guard let adapterURL = Self.locateAdapter(), let frameworkURL = Self.locateFramework() else { return }
+        guard let scriptURL = Self.locateScript(), let frameworkDir = Self.locateFrameworkDir() else { return }
         Task.detached {
             let p = Process()
-            p.executableURL = adapterURL
-            p.arguments = [frameworkURL.path] + extra
+            p.executableURL = URL(fileURLWithPath: "/usr/bin/perl")
+            p.arguments = [scriptURL.path, frameworkDir.path] + extra
             p.standardOutput = Pipe()
             p.standardInput = Pipe()
             try? p.run()
@@ -242,44 +244,37 @@ final class MediaManager: ObservableObject {
 
     // MARK: - 路径定位
 
-    static func locateAdapter() -> URL? {
-        // 1. app bundle 内
-        if let bundleURL = Bundle.main.url(forResource: "MediaRemoteAdapter", withExtension: nil) {
+    static func locateScript() -> URL? {
+        // 1. app bundle 内 Resources
+        if let bundleURL = Bundle.main.url(forResource: "mediaremote", withExtension: "pl") {
             return bundleURL
         }
         // 2. 与主程序同目录（SPM debug 构建）
         let exeDir = Bundle.main.executableURL?.deletingLastPathComponent()
             ?? URL(fileURLWithPath: CommandLine.arguments[0]).deletingLastPathComponent()
-        let adjacent = exeDir.appendingPathComponent("MediaRemoteAdapter")
+        let adjacent = exeDir.appendingPathComponent("mediaremote.pl")
         if FileManager.default.fileExists(atPath: adjacent.path) { return adjacent }
         return nil
     }
 
-    static func locateFramework() -> URL? {
-        // 1. app bundle 内 PrivateFrameworks
-        if let frameworks = Bundle.main.privateFrameworksPath {
-            let u = URL(fileURLWithPath: frameworks).appendingPathComponent("MediaRemoteAdapter.framework")
-            if FileManager.default.fileExists(atPath: u.path),
-               let bin = frameworkBinary(in: u) { return bin }
+    /// 返回 framework 目录（perl 脚本内部自己解析实际 dylib 路径）
+    static func locateFrameworkDir() -> URL? {
+        // 1. app bundle 内 PrivateFrameworks。
+        //    不要用 Bundle.main.privateFrameworksPath —— 实测它在 macOS 26 上返回
+        //    Contents/Frameworks，而 make_app.sh 把框架放进 Contents/PrivateFrameworks，
+        //    会导致打包后误判 framework 不存在、媒体管道起不来。这里显式构造路径。
+        let bundleFw = Bundle.main.bundleURL
+            .appendingPathComponent("Contents/PrivateFrameworks/MediaRemoteAdapter.framework")
+        if FileManager.default.fileExists(atPath: bundleFw.path) { return bundleFw }
+        // 2. 兜底：privateFrameworksPath 指向的位置（部分打包方式会放 Contents/Frameworks）
+        if let fw = Bundle.main.privateFrameworksPath {
+            let u = URL(fileURLWithPath: fw).appendingPathComponent("MediaRemoteAdapter.framework")
+            if FileManager.default.fileExists(atPath: u.path) { return u }
         }
-        // 2. 开发时：包目录下 Resources/
+        // 3. 开发时：包目录下 Resources/
         let dev = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appendingPathComponent("Resources/MediaRemoteAdapter.framework")
-        if FileManager.default.fileExists(atPath: dev.path),
-           let bin = frameworkBinary(in: dev) { return bin }
-        return nil
-    }
-
-    /// macOS 26 上 dlopen 传 framework 目录会报 "(not a file)"，必须传实际 dylib 路径。
-    private static func frameworkBinary(in frameworkDir: URL) -> URL? {
-        let candidates = [
-            frameworkDir.appendingPathComponent("MediaRemoteAdapter"),
-            frameworkDir.appendingPathComponent("Versions/Current/MediaRemoteAdapter"),
-            frameworkDir.appendingPathComponent("Versions/A/MediaRemoteAdapter"),
-        ]
-        for c in candidates where FileManager.default.fileExists(atPath: c.path) {
-            return c
-        }
+        if FileManager.default.fileExists(atPath: dev.path) { return dev }
         return nil
     }
 

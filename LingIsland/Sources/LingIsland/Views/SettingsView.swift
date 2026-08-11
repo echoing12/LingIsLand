@@ -23,6 +23,14 @@ struct SettingsView: View {
 
             Divider()
 
+            Button {
+                NSWorkspace.shared.open(AppLinks.donate)
+            } label: {
+                Label("请作者喝杯奶茶 ☕", systemImage: "heart.fill")
+                    .font(.callout)
+            }
+            .buttonStyle(.link)
+
             Text("灵岛 v0.1 · 用爱发电")
                 .font(.caption)
                 .foregroundStyle(.secondary)

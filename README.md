@@ -18,14 +18,21 @@
 | 🔋 电池通知 | 插拔电源 / 充满时弹通知与电池 HUD |
 | 👻 萌宠心情 | 漂浮眨眼·裙摆起伏 / 播放开心挥手+星星 / 开岛直接飘下来变大变灵动 / 拖文件好奇歪头 / 深夜犯困飘 zZ Z / 眼睛追随光标 / **点击戳它：压扁弹起+boo!+爆星星** / **双击：跳起舞来♪**（放音乐时也会跟着跳）/ **会说话：开岛问好·道别·切歌/拖文件/收通知都有台词气泡** |
 
+## 支持与打赏
+
+如果灵岛让你开心，欢迎 [请作者喝杯奶茶 ☕](https://echoing12.github.io/LingIsLand/#donate)——微信 / 支付宝赞赏码都在落地页的打赏区。
+
 ## 构建与运行
 
 ```bash
 cd LingIsland
 swift build          # 编译验证
 ./scripts/make_app.sh   # 打包为 dist/LingIsland.app
+./scripts/make_dmg.sh   # 打包为可拖拽安装的 dist/LingIsland-<版本>.dmg
 open dist/LingIsland.app
 ```
+
+App 图标取自落地页吉祥物（`Resources/AppIcon.svg`），改图形后用 `./scripts/make_icon.sh` 重新生成 `.icns`。
 
 ## 首次使用
 
@@ -53,3 +60,8 @@ Sources/MediaRemoteAdapter/    MediaRemote 私有框架薄封装（子进程，J
 - 音量/亮度 HUD 替换需要辅助功能权限
 - 显示亮度控制走 CoreBrightness 私有 API（Apple Silicon 可用，失败时优雅放行系统）
 - 屏幕录制权限不需要（不碰摄像头/录屏）
+
+## 版权声明
+
+© 2026 灵岛（LingIsland）· **保留所有权利（All Rights Reserved）** · 未经作者书面许可，不得复制、修改、分发或用于商业用途。
+第三方组件（`MediaRemoteAdapter.framework`，BSD 3-Clause）版权归其原作者所有，见 `LingIsland/Resources/THIRD_PARTY_NOTICE.md`。

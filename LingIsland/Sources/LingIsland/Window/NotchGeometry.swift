@@ -23,14 +23,16 @@ enum NotchGeometry {
     static let openTopRadius: CGFloat = 19
     static let openBottomRadius: CGFloat = 24
 
-    // 幽灵（始终在黑色胶囊/面板内部，不脱离黑色部位）
+    // 幽灵（开岛时在面板内部，不脱离黑色部位）
     static let petGap: CGFloat = 12          // 幽灵到胶囊边 / 内容区的间距
-    static let petSizeClosed: CGFloat = 34
     static let petSizeOpen: CGFloat = 72     // 开岛更大更灵动
+    /// 闭岛胶囊比真实刘海多出的高度：让「深槽里两只大眼睛」的形态更立体
+    /// 眼睛随胶囊高度缩放，调小即可压低闭岛（0 = 与刘海齐平；别设负值，会盖不住刘海）
+    static let closedExtraHeight: CGFloat = 8
     /// 面板内容边距（功能区左右/底部留白）
     static let panelPadding: CGFloat = 12
-    /// 闭岛胶囊为容纳幽灵，比刘海向两侧延伸的宽度
-    static let petClosedOverhang: CGFloat = petSizeClosed + petGap
+    /// 闭岛胶囊比刘海向两侧延伸的宽度（纯宽度常量：呈灵动岛的「宽岛」形态，闭岛只显示眼睛）
+    static let petClosedOverhang: CGFloat = 46
     /// 开岛面板左侧幽灵专属区宽度
     static let petZoneWidth: CGFloat = petSizeOpen + petGap * 2
 

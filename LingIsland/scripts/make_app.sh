@@ -20,8 +20,11 @@ mkdir -p "$APP_BUNDLE/Contents/PrivateFrameworks"
 # 主程序
 cp "$BUILD_DIR/${APP_NAME}" "$APP_BUNDLE/Contents/MacOS/${APP_NAME}"
 
-# 媒体适配器子进程
-cp "$BUILD_DIR/MediaRemoteAdapter" "$APP_BUNDLE/Contents/Resources/MediaRemoteAdapter"
+# 媒体适配器 perl 脚本：经 /usr/bin/perl 运行（bundle id com.apple.perl5 才可读 Now Playing）
+cp "Resources/mediaremote.pl" "$APP_BUNDLE/Contents/Resources/mediaremote.pl"
+
+# 应用图标（.icns 由 Resources/AppIcon.svg 生成）
+cp "Resources/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/AppIcon.icns"
 
 # MediaRemoteAdapter.framework
 cp -R "Resources/MediaRemoteAdapter.framework" "$APP_BUNDLE/Contents/PrivateFrameworks/"
@@ -42,6 +45,8 @@ cat > "$APP_BUNDLE/Contents/Info.plist" <<PLIST
     <string>灵岛</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
     <key>CFBundleShortVersionString</key>
     <string>${VERSION}</string>
     <key>CFBundleVersion</key>

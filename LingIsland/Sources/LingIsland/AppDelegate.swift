@@ -4,6 +4,11 @@ import os
 
 private let log = Logger(subsystem: "com.lingisland.app", category: "AppDelegate")
 
+/// 对外链接：打赏页 = 落地页（GitHub Pages）的打赏区锚点
+enum AppLinks {
+    static let donate = URL(string: "https://echoing12.github.io/LingIsLand/#donate")!
+}
+
 /// 应用入口代理：创建灵动岛窗口、菜单栏、启动各功能管理器
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -139,6 +144,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem(title: "打开 / 关闭灵动岛", action: #selector(toggleIsland), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "设置", action: #selector(openSettings), keyEquivalent: ","))
 
+        menu.addItem(NSMenuItem(title: "打赏支持 ☕", action: #selector(openDonate), keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "发送测试通知", action: #selector(sendTestNotification), keyEquivalent: ""))
 
         if !MediaKeyInterceptor.isTrusted {
@@ -159,6 +165,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // 授权后重启事件拦截
             MediaKeyInterceptor.shared.start()
         }
+    }
+
+    /// 打赏：打开落地页打赏区（收款码在网页端，不入 app 包）
+    @objc private func openDonate() {
+        NSWorkspace.shared.open(AppLinks.donate)
     }
 
     @objc private func sendTestNotification() {

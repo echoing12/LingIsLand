@@ -14,6 +14,8 @@ dist/
 /tmp
 *.png
 *.jpg
+# 放行落地页打赏二维码（供 GitHub Pages 展示）
+!落地页/images/*.png
 
 # 本机专属设置
 .claude/settings.local.json

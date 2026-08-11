@@ -24,7 +24,7 @@ struct IslandView: View {
         isOpen ? NotchGeometry.openWidth : vm.closedSize.width + NotchGeometry.petClosedOverhang * 2
     }
     private var capsuleHeight: CGFloat {
-        isOpen ? NotchGeometry.openHeight : vm.closedSize.height
+        isOpen ? NotchGeometry.openHeight : vm.closedSize.height + NotchGeometry.closedExtraHeight
     }
     private var topRadius: CGFloat {
         // 闭岛 = 黑色胶囊：两端圆角 = 高度一半，塞进幽灵也保持胶囊外形
@@ -37,6 +37,7 @@ struct IslandView: View {
     var body: some View {
         ZStack(alignment: .top) {
             capsule
+            petSpeechLayer
             hudLayer
             notificationLayer
         }
@@ -159,7 +160,8 @@ struct IslandView: View {
 
     private var hudPosition: CGPoint {
         let midX = NotchGeometry.windowWidth / 2
-        let capsuleBottom = isOpen ? NotchGeometry.openHeight : vm.closedSize.height
+        // 胶囊底边 y 直接复用 capsuleHeight：闭岛高度公式只在一处维护，改高度时 HUD 自动跟随
+        let capsuleBottom = capsuleHeight
         return CGPoint(
             x: midX,
             y: capsuleBottom + NotchGeometry.hudGap + 20   // 20 = HUD 胶囊半高
@@ -185,53 +187,68 @@ struct IslandView: View {
 
     private var petLayer: some View {
         ZStack {
-            GhostView(moodManager: pet)
-                .frame(width: GhostMetrics.canvas, height: GhostMetrics.canvas)
-                .scaleEffect(petScale)
-                .position(petPosition)
-                .animation(spring, value: vm.islandState)
-            // 气泡：不随幽灵 scaleEffect 缩放，以完整字号画在幽灵下方
-            if let speech = pet.speech {
-                PetSpeechBubble(text: speech)
-                    .position(speechPosition)
-                    .transition(.opacity.combined(with: .scale(scale: 0.6)))
-                    .allowsHitTesting(false)
-                    .zIndex(25)
+            // 开岛：完整幽灵（左侧专属区，可点击互动）
+            if isOpen {
+                GhostView(moodManager: pet)
+                    .frame(width: GhostMetrics.canvas, height: GhostMetrics.canvas)
+                    .scaleEffect(petScale)
+                    .position(petPosition)
+            } else {
+                // 闭岛：黑色胶囊里只有两只圆眼睛（白眼球+瞳孔，各自看鼠标、间歇眨眼），不再有幽灵
+                ClosedEyesView(
+                    moodManager: pet,
+                    capsuleSize: CGSize(width: capsuleWidth, height: capsuleHeight)
+                )
+                .transition(.opacity)
             }
         }
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: pet.speech)
-        // 不关命中测试：让幽灵自己的 onTapGesture 接收点击（卖萌互动），胶囊别处仍是开/关岛
+        .animation(.easeInOut(duration: 0.18), value: isOpen)
     }
 
-    /// 气泡位置：幽灵正下方，收进窗口高度内
-    private var speechPosition: CGPoint {
-        let petHalf = (isOpen ? NotchGeometry.petSizeOpen : NotchGeometry.petSizeClosed) / 2
+    /// 气泡（窗口坐标系）：胶囊上方是顶部 tab 条，气泡放在胶囊下方、不随胶囊被裁剪。
+    /// 只在开岛时说话 —— 闭岛只剩眼睛，不冒台词。
+    @ViewBuilder
+    private var petSpeechLayer: some View {
+        if isOpen, showPet, let speech = pet.speech {
+            PetSpeechBubble(text: speech)
+                .position(windowSpeechPosition)
+                .transition(.opacity.combined(with: .scale(scale: 0.6)))
+                .allowsHitTesting(false)
+                .zIndex(25)
+        }
+    }
+
+    /// 气泡位置（窗口坐标系）：胶囊水平居中于窗口，把胶囊内参考点换算到窗口坐标
+    private var windowSpeechPosition: CGPoint {
+        let capsuleOriginX = (NotchGeometry.windowWidth - capsuleWidth) / 2
+        let p = capsuleSpeechPosition
         return CGPoint(
-            x: petPosition.x,
-            y: min(petPosition.y + petHalf + 12, NotchGeometry.windowHeight - 24)
+            x: capsuleOriginX + p.x,
+            y: min(p.y, NotchGeometry.windowHeight - 24)
         )
     }
 
-    private var petScale: CGFloat {
-        let target = isOpen ? NotchGeometry.petSizeOpen : NotchGeometry.petSizeClosed
-        return target / GhostMetrics.canvas
+    /// 气泡在胶囊内部的参考位置：开岛在幽灵下方；闭岛在胶囊正下方居中
+    private var capsuleSpeechPosition: CGPoint {
+        if isOpen {
+            let petHalf = NotchGeometry.petSizeOpen / 2
+            return CGPoint(x: petPosition.x, y: petPosition.y + petHalf + 12)
+        } else {
+            return CGPoint(x: capsuleWidth / 2, y: capsuleHeight + 12)
+        }
     }
 
-    /// 幽灵在胶囊/面板内部的位置（胶囊坐标系，0,0 = 胶囊左上角）
+    private var petScale: CGFloat {
+        NotchGeometry.petSizeOpen / GhostMetrics.canvas
+    }
+
+    /// 幽灵在开岛面板内部的位置（胶囊坐标系，0,0 = 胶囊左上角）
     private var petPosition: CGPoint {
-        if isOpen {
-            // 开岛：水平保持在左侧专属区不变，垂直相对原底部对齐往上挪
-            return CGPoint(
-                x: NotchGeometry.panelPadding + NotchGeometry.petZoneWidth / 2,
-                y: NotchGeometry.openHeight - NotchGeometry.panelPadding - NotchGeometry.petSizeOpen / 2 - 30
-            )
-        } else {
-            // 闭岛：胶囊左端内部，垂直居中
-            return CGPoint(
-                x: NotchGeometry.petGap + NotchGeometry.petSizeClosed / 2,
-                y: capsuleHeight / 2
-            )
-        }
+        // 水平保持在左侧专属区，垂直相对原底部对齐往上挪
+        CGPoint(
+            x: NotchGeometry.panelPadding + NotchGeometry.petZoneWidth / 2,
+            y: NotchGeometry.openHeight - NotchGeometry.panelPadding - NotchGeometry.petSizeOpen / 2 - 30
+        )
     }
 
     // MARK: - 交互
